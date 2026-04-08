@@ -1,14 +1,15 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  name:     { type: String, required: true },
-  mobile:   { type: String, required: true, unique: true },
-  pin:      { type: String, required: true },
-  apiKey:   { type: String, unique: true },
-  balance:  { type: Number, default: 0 },
-  isAdmin:  { type: Boolean, default: false },
-  isBlocked:{ type: Boolean, default: false },
-  createdAt:{ type: Date, default: Date.now }
-});
+  username: { type: String, unique:true, required:true },
+  fullName: { type: String, unique:true, required:true },
+  mobile: { type: String, unique:true, required:true },
+  telegramId: { type: String, unique:true, required:true },
+  password: { type: String, required:true },
+  balance: { type: Number, default: 0 },
+  isBlocked: { type: Boolean, default: false },
+  isAdmin: { type: Boolean, default: false },
+  apiKey: String
+},{ timestamps:true });
 
 module.exports = mongoose.model('User', userSchema);
