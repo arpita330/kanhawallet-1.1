@@ -1,15 +1,9 @@
 {
   "version": 2,
+  "builds": [
+    { "src": "server.js", "use": "@vercel/node" }
+  ],
   "routes": [
-    { "src": "/", "dest": "/public/index.html" },
-    { "src": "/dashboard", "dest": "/public/dashboard.html" },
-    { "src": "/transfer", "dest": "/public/transfer.html" },
-
-    { "src": "/send-otp-api", "dest": "/api/send-otp.js" },
-    { "src": "/verify-otp-api", "dest": "/api/verify-otp.js" },
-    { "src": "/register-api", "dest": "/api/register.js" },
-    { "src": "/login-api", "dest": "/api/login.js" },
-    { "src": "/balance-api", "dest": "/api/balance.js" },
-    { "src": "/transfer-api", "dest": "/api/transfer.js" }
+    { "src": "/(.*)", "dest": "server.js" }
   ]
 }
