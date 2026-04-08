@@ -1,48 +1,25 @@
-const router = require('express').Router();
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { v4: uuidv4 } = require('uuid');
-const User = require('../models/User');
+require('dotenv').config();
+const express = require('express');
+const mongoose = require('mongoose');
+const app = express();
 
-// Register
-router.post('/register', async (req, res) => {
-  try {
-    const { name, mobile, pin } = req.body;
-    if (!name || !mobile || !pin)
-      return res.status(400).json({ error: 'All fields required' });
-    if (await User.findOne({ mobile }))
-      return res.status(400).json({ error: 'Mobile already registered' });
+// Middleware
+const { sanitizeInput, rateLimiter } = require('./middleware/security');
+app.use(express.json());
+app.use(sanitizeInput);
+app.use(rateLimiter);
 
-    const hashed = await bcrypt.hash(pin, 10);
-    const apiKey = uuidv4().replace(/-/g, '');
-    const user = await User.create({ name, mobile, pin: hashed, apiKey });
-    const token = jwt.sign({ id: user._id, mobile: user.mobile }, process.env.JWT_SECRET, { expiresIn: '30d' });
-    res.json({ success: true, token, user: { name: user.name, mobile: user.mobile, apiKey: user.apiKey, balance: user.balance } });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
+// Routes
+app.use('/auth', require('./routes/auth'));
+app.use('/wallet', require('./routes/wallet'));
+app.use('/transfer', require('./routes/transfer'));
+app.use('/lifafa', require('./routes/lifafa'));
+app.use('/otp', require('./routes/otp'));
 
-// Login
-router.post('/login', async (req, res) => {
-  try {
-    const { mobile, pin } = req.body;
-    const user = await User.findOne({ mobile });
-    if (!user) return res.status(400).json({ error: 'User not found' });
-    if (user.isBlocked) return res.status(403).json({ error: 'Account blocked' });
-    const match = await bcrypt.compare(pin, user.pin);
-    if (!match) return res.status(400).json({ error: 'Wrong PIN' });
-    const token = jwt.sign({ id: user._id, mobile: user.mobile }, process.env.JWT_SECRET, { expiresIn: '30d' });
-    res.json({ success: true, token, user: { name: user.name, mobile: user.mobile, apiKey: user.apiKey, balance: user.balance, isAdmin: user.isAdmin } });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
+// Serve frontend
+app.use(express.static('public'));
 
-// Me
-router.get('/me', require('../middleware/auth'), async (req, res) => {
-  const user = await User.findById(req.user.id).select('-pin');
-  res.json(user);
-});
-
-module.exports = router;
+// Connect MongoDB & Start Server
+mongoose.connect(process.env.MONGO_URI)
+  .then(()=> app.listen(process.env.PORT || 3000, ()=> console.log('Sᴇʀᴠᴇʀ Rᴜɴɴɪɴɢ')))
+  .catch(err => console.error(err));
