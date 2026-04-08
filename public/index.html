@@ -1,103 +1,77 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Kᴀɴʜᴀ Wᴀʟʟᴇᴛ</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tʀᴀɴꜱꜰᴇʀ</title>
+
 <style>
-body{font-family:sans-serif;background:#667eea;color:white;text-align:center;padding:20px}
-input,button{padding:10px;margin:5px;width:90%}
+body{
+  font-family:'Segoe UI';
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  padding:20px;
+}
+
+.card{
+  background:white;
+  padding:20px;
+  border-radius:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.2);
+}
+
+input{
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border:2px solid #eee;
+  border-radius:10px;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  color:white;
+}
+
+.msg{text-align:center;margin-top:10px}
 </style>
 </head>
 
 <body>
 
-<h2>Kᴀɴʜᴀ Wᴀʟʟᴇᴛ</h2>
+<div class="card">
 
-<h3>Rᴇɢɪꜱᴛᴇʀ</h3>
-<input id="username" placeholder="Uꜱᴇʀɴᴀᴍᴇ">
-<input id="name" placeholder="Fᴜʟʟ Nᴀᴍᴇ">
-<input id="mobile" placeholder="Mᴏʙɪʟᴇ">
-<input id="telegram" placeholder="Tᴇʟᴇɢʀᴀᴍ Iᴅ">
-<input id="password" type="password" placeholder="Pᴀꜱꜱᴡᴏʀᴅ">
+<h2>Sᴇɴᴅ Mᴏɴᴇʏ</h2>
 
-<button onclick="sendOtp()">Sᴇɴᴅ OTP</button>
-<input id="otp" placeholder="Eɴᴛᴇʀ OTP">
-<button onclick="verifyOtp()">Vᴇʀɪꜰʏ OTP</button>
+<input id="mobile" placeholder="Rᴇᴄᴇɪᴠᴇʀ Mᴏʙɪʟᴇ">
+<input id="amount" placeholder="Aᴍᴏᴜɴᴛ">
 
-<button onclick="register()">Cʀᴇᴀᴛᴇ Aᴄᴄᴏᴜɴᴛ</button>
+<button onclick="send()">Sᴇɴᴅ</button>
 
-<h3>Lᴏɢɪɴ</h3>
-<input id="lmobile" placeholder="Mᴏʙɪʟᴇ">
-<input id="lpass" type="password" placeholder="Pᴀꜱꜱᴡᴏʀᴅ">
-<button onclick="login()">Lᴏɢɪɴ</button>
+<p id="msg" class="msg"></p>
 
-<p id="msg"></p>
+</div>
 
 <script>
-async function sendOtp(){
-  const mobile=document.getElementById("mobile").value;
-  const telegramId=document.getElementById("telegram").value;
+const token=localStorage.getItem("token");
 
-  const r=await fetch('/send-otp-api',{
+async function send(){
+  const r=await fetch('/transfer-api',{
     method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({mobile,telegramId})
-  });
-
-  const d=await r.json();
-  msg.innerText=d.message||d.error;
-}
-
-async function verifyOtp(){
-  const mobile=document.getElementById("mobile").value;
-  const otp=document.getElementById("otp").value;
-
-  const r=await fetch('/verify-otp-api',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({mobile,otp})
-  });
-
-  const d=await r.json();
-  msg.innerText=d.success?"Vᴇʀɪꜰɪᴇᴅ":d.error;
-}
-
-async function register(){
-  const data={
-    username:username.value,
-    name:name.value,
-    mobile:mobile.value,
-    telegramId:telegram.value,
-    password:password.value
-  };
-
-  const r=await fetch('/register-api',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify(data)
-  });
-
-  const d=await r.json();
-  msg.innerText=d.success?"Aᴄᴄᴏᴜɴᴛ Cʀᴇᴀᴛᴇᴅ":d.error;
-}
-
-async function login(){
-  const r=await fetch('/login-api',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
+    headers:{
+      'Content-Type':'application/json',
+      Authorization:'Bearer '+token
+    },
     body:JSON.stringify({
-      mobile:lmobile.value,
-      password:lpass.value
+      mobile:mobile.value,
+      amount:Number(amount.value)
     })
   });
 
   const d=await r.json();
-
-  if(d.success){
-    localStorage.setItem("token",d.token);
-    location.href="/dashboard";
-  }else{
-    msg.innerText=d.error;
-  }
+  msg.innerText=d.success?"Sᴜᴄᴄᴇꜱꜱ":d.error;
 }
 </script>
 
