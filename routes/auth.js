@@ -1,25 +1,54 @@
-require('dotenv').config();
-const express = require('express');
-const mongoose = require('mongoose');
-const app = express();
+const router = require('express').Router();
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+const otpStore = require('../routes/otp').otpStore;
 
-// Middleware
-const { sanitizeInput, rateLimiter } = require('./middleware/security');
-app.use(express.json());
-app.use(sanitizeInput);
-app.use(rateLimiter);
+// Register
+router.post('/register', async (req, res) => {
+  try{
+    const { username, fullName, mobile, telegramId, password, otp } = req.body;
+    if(!username || !fullName || !mobile || !telegramId || !password || !otp)
+      return res.status(400).json({ error: 'Aʟʟ Fɪᴇʟᴅs RᴇQᴜɪʀᴇᴅ' });
 
-// Routes
-app.use('/auth', require('./routes/auth'));
-app.use('/wallet', require('./routes/wallet'));
-app.use('/transfer', require('./routes/transfer'));
-app.use('/lifafa', require('./routes/lifafa'));
-app.use('/otp', require('./routes/otp'));
+    // OTP verification
+    const record = otpStore.get(mobile);
+    if(!record || record.otp != otp || record.expires < Date.now())
+      return res.status(400).json({ error: 'Iɴᴠᴀʟɪᴅ Oᴛᴘ' });
+    otpStore.delete(mobile);
 
-// Serve frontend
-app.use(express.static('public'));
+    // Unique checks
+    if(await User.findOne({ username })) return res.status(400).json({ error: 'Usᴇʀɴᴀᴍᴇ Aʟʀᴇᴀᴅʏ Tᴀᴋᴇɴ' });
+    if(await User.findOne({ fullName })) return res.status(400).json({ error: 'Fᴜʟʟ Nᴀᴍᴇ Aʟʀᴇᴀᴅʏ Tᴀᴋᴇɴ' });
+    if(await User.findOne({ mobile })) return res.status(400).json({ error: 'Mᴏʙɪʟᴇ Aʟʀᴇᴀᴅʏ Rᴇɢɪsᴛᴇʀᴇᴅ' });
+    if(await User.findOne({ telegramId })) return res.status(400).json({ error: 'Tᴇʟᴇɢʀᴀᴍ Iᴅ Aʟʀᴇᴀᴅʏ Rᴇɢɪsᴛᴇʀᴇᴅ' });
 
-// Connect MongoDB & Start Server
-mongoose.connect(process.env.MONGO_URI)
-  .then(()=> app.listen(process.env.PORT || 3000, ()=> console.log('Sᴇʀᴠᴇʀ Rᴜɴɴɪɴɢ')))
-  .catch(err => console.error(err));
+    const hashed = await bcrypt.hash(password, 10);
+    const user = await User.create({ username, fullName, mobile, telegramId, password:hashed });
+    const token = jwt.sign({ id:user._id }, process.env.JWT_SECRET, { expiresIn:'30d' });
+
+    res.json({ success:true, message:`Rᴇɢɪsᴛʀᴀᴛɪᴏɴ Sᴜᴄᴄᴇssғᴜʟʟʏ`, token, user:{ username:user.username, fullName:user.fullName, mobile:user.mobile, balance:user.balance }});
+  } catch(e){
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Login
+router.post('/login', async (req,res)=>{
+  try{
+    const { username, password } = req.body;
+    const user = await User.findOne({ username });
+    if(!user) return res.status(400).json({ error:'Usᴇʀɴᴀᴍᴇ Nᴏᴛ Fᴏᴜɴᴅ' });
+    if(user.isBlocked) return res.status(403).json({ error:'Aᴄᴄᴏᴜɴᴛ Bʟᴏᴄᴋᴇᴅ' });
+
+    const match = await bcrypt.compare(password, user.password);
+    if(!match) return res.status(400).json({ error:'Wʀᴏɴɢ Pᴀssᴡᴏʀᴅ' });
+
+    const token = jwt.sign({ id:user._id }, process.env.JWT_SECRET, { expiresIn:'30d' });
+    res.json({ success:true, token, message:`Lᴏɢɪɴ Sᴜᴄᴄᴇssғᴜʟʟʏ`, user:{ username:user.username, fullName:user.fullName, balance:user.balance }});
+  } catch(e){
+    res.status(500).json({ error:e.message });
+  }
+});
+
+module.exports = router;
