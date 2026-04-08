@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aᴅᴅ Mᴏɴᴇʏ</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  font-family:'Segoe UI',sans-serif;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  padding:20px;
+}
+
+.card{
+  background:white;
+  border-radius:18px;
+  padding:20px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.2);
+}
+
+h2{
+  text-align:center;
+  margin-bottom:15px;
+}
+
+input{
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border:2px solid #eee;
+  border-radius:10px;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  color:white;
+  font-weight:700;
+}
+
+.msg{
+  text-align:center;
+  margin-top:10px;
+  font-size:13px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<h2>Aᴅᴅ Mᴏɴᴇʏ</h2>
+
+<input id="amount" type="number" placeholder="Eɴᴛᴇʀ Aᴍᴏᴜɴᴛ ₹">
+
+<button onclick="deposit()">Sᴜʙᴍɪᴛ RᴇQᴜᴇꜱᴛ</button>
+
+<p id="msg" class="msg"></p>
+
+</div>
+
+<script>
+const token = localStorage.getItem("token");
+
+async function deposit(){
+  const amount = document.getElementById("amount").value;
+
+  if(amount < 1){
+    msg.innerText = "Mɪɴɪᴍᴜᴍ ₹1";
+    return;
+  }
+
+  const r = await fetch('/balance-api', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + token
+    },
+    body: JSON.stringify({ amount })
+  });
+
+  const d = await r.json();
+
+  msg.innerText = d.success
+    ? "RᴇQᴜᴇꜱᴛ Sᴇɴᴛ"
+    : d.error;
+}
+</script>
+
+</body>
+</html>
