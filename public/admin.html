@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aᴅᴍɪɴ Pᴀɴᴇʟ</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  font-family:'Segoe UI',sans-serif;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  padding:20px;
+}
+
+.card{
+  background:white;
+  border-radius:18px;
+  padding:20px;
+  margin-bottom:15px;
+}
+
+h2{text-align:center;margin-bottom:10px}
+
+input{
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+  border:2px solid #eee;
+  border-radius:8px;
+}
+
+button{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  background:#667eea;
+  color:white;
+  font-weight:700;
+}
+
+.msg{text-align:center;margin-top:8px;font-size:13px}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+<h2>Aᴅᴅ Bᴀʟᴀɴᴄᴇ</h2>
+<input id="m" placeholder="Mᴏʙɪʟᴇ">
+<input id="a" type="number" placeholder="Aᴍᴏᴜɴᴛ">
+<button onclick="add()">Aᴅᴅ</button>
+<p id="msg1" class="msg"></p>
+</div>
+
+<div class="card">
+<h2>Cʀᴇᴀᴛᴇ Gɪꜰᴛ</h2>
+<input id="ga" type="number" placeholder="Aᴍᴏᴜɴᴛ">
+<input id="gu" type="number" placeholder="Mᴀx Uꜱᴇꜱ">
+<button onclick="gift()">Cʀᴇᴀᴛᴇ</button>
+<p id="msg2" class="msg"></p>
+</div>
+
+<script>
+const token = localStorage.getItem("token");
+
+async function add(){
+  const r = await fetch('/admin-add',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      Authorization:'Bearer '+token
+    },
+    body:JSON.stringify({
+      mobile:m.value,
+      amount:a.value
+    })
+  });
+  const d = await r.json();
+  msg1.innerText = d.success ? "Dᴏɴᴇ" : d.error;
+}
+
+async function gift(){
+  const r = await fetch('/admin-gift',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      Authorization:'Bearer '+token
+    },
+    body:JSON.stringify({
+      amount:ga.value,
+      maxUses:gu.value
+    })
+  });
+  const d = await r.json();
+  msg2.innerText = d.success ? "Cᴏᴅᴇ: "+d.code : d.error;
+}
+</script>
+
+</body>
+</html>
