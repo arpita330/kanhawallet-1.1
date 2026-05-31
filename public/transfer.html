@@ -58,7 +58,7 @@ button{
 const token=localStorage.getItem("token");
 
 async function send(){
-  const r=await fetch('/transfer-api',{
+  const r=await fetch('/api/wallet/transfer',{
     method:'POST',
     headers:{
       'Content-Type':'application/json',
