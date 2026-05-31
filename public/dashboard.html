@@ -9,11 +9,6 @@ body{
   font-family:'Segoe UI';
   background:linear-gradient(135deg,#667eea,#764ba2);
   padding:20px;
-  margin:0; /* Fix: ensure body spacing is consistent */
-  min-height:100vh; /* Fix: make background cover full height */
-  display:flex; /* Fix: center card properly */
-  align-items:center; /* Fix: vertical centering */
-  justify-content:center; /* Fix: horizontal centering */
 }
 
 .card{
@@ -22,16 +17,12 @@ body{
   border-radius:18px;
   text-align:center;
   box-shadow:0 10px 30px rgba(0,0,0,0.2);
-  width:100%; /* Fix: responsive width */
-  max-width:350px; /* Fix: limit card width */
-  box-sizing:border-box; /* Fix: include padding in width */
 }
 
 .balance{
   font-size:32px;
   font-weight:800;
   color:#667eea;
-  margin:15px 0; /* Fix: add spacing around balance */
 }
 
 .btn{
@@ -42,15 +33,7 @@ body{
   background:#667eea;
   color:white;
   text-decoration:none;
-  font-weight:600; /* Fix: improve readability */
-  transition:background 0.2s; /* Fix: subtle hover effect */
 }
-
-.btn:hover{
-  background:#5a67d8; /* Fix: hover state for better UX */
-}
-
-/* Fix: ensure token handling doesn't break UI if missing */
 </style>
 </head>
 
@@ -66,41 +49,15 @@ body{
 </div>
 
 <script>
-// Fix: properly handle missing token and fetch errors
-const token = localStorage.getItem("token");
+const token=localStorage.getItem("token");
 
-// Fix: only fetch if token exists, otherwise show appropriate message
-if (token) {
-  fetch('/balance-api', {
-    method: 'GET', // Fix: explicitly define method
-    headers: {
-      'Authorization': 'Bearer ' + token,
-      'Content-Type': 'application/json' // Fix: add proper content-type header
-    }
-  })
-  .then(response => {
-    // Fix: handle non-OK responses gracefully
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-    return response.json();
-  })
-  .then(data => {
-    // Fix: safely access balance property with fallback
-    const balanceAmount = (data && typeof data.balance === 'number') ? data.balance : 0;
-    document.getElementById("bal").innerText = "₹" + balanceAmount;
-  })
-  .catch(error => {
-    // Fix: show error state without breaking UI
-    console.error('Balance fetch error:', error);
-    document.getElementById("bal").innerText = "₹0";
-    // Fix: optionally show subtle error indicator (no extra features, just fallback)
-  });
-} else {
-  // Fix: handle missing token case - keep ₹0 but don't attempt fetch
-  console.log('No token found, please login');
-  // Balance remains ₹0 as initialized
-}
+fetch('/balance-api',{
+  headers:{Authorization:'Bearer '+token}
+})
+.then(r=>r.json())
+.then(d=>{
+  document.getElementById("bal").innerText="₹"+d.balance;
+});
 </script>
 
 </body>
