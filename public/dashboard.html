@@ -44,14 +44,14 @@ body{
 
 <div class="balance" id="bal">₹0</div>
 
-<a href="/transfer" class="btn">Sᴇɴᴅ Mᴏɴᴇʏ</a>
+<a href="/transfer.html" class="btn">Sᴇɴᴅ Mᴏɴᴇʏ</a>
 
 </div>
 
 <script>
 const token=localStorage.getItem("token");
 
-fetch('/balance-api',{
+fetch('/api/wallet/balance',{
   headers:{Authorization:'Bearer '+token}
 })
 .then(r=>r.json())
