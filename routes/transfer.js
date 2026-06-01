@@ -4,19 +4,19 @@ const User = require('../models/User');
 const Transaction = require('../models/Transaction');
 const { v4: uuidv4 } = require('uuid');
 
-// Transfer Money To Another User
+// Transfer by mobile
 router.post('/', auth, async (req, res) => {
   try {
-    const { username, amount, note } = req.body;
-    if (!username || !amount) return res.status(400).json({ error: 'Uѕᴇʀɴᴀᴍᴇ ᴀɴᴅ Aᴍᴏᴜɴᴛ RᴇQᴜɪʀᴇᴅ' });
-    if (amount < 1) return res.status(400).json({ error: 'Mɪɴɪᴍᴜᴍ Tʀᴀɴsғᴇʀ Iѕ ₹1' });
+    const { mobile, amount, note } = req.body;
+    if (!mobile || !amount) return res.status(400).json({ error: 'Mobile and amount required' });
+    if (amount < 1) return res.status(400).json({ error: 'Minimum transfer ₹1' });
 
-    const sender = await User.findById(req.user._id);
-    const receiver = await User.findOne({ username });
+    const sender = await User.findById(req.user.id);
+    const receiver = await User.findOne({ mobile });
 
-    if (!receiver) return res.status(404).json({ error: 'Rᴇᴄᴇɪᴠᴇʀ Nᴏᴛ Fᴏᴜɴᴅ' });
-    if (sender.username === username) return res.status(400).json({ error: 'Cᴀɴɴᴏᴛ Tʀᴀɴsғᴇʀ Tᴏ Yᴏᴜʀsᴇʟғ' });
-    if (sender.balance < amount) return res.status(400).json({ error: 'Iɴsᴜғғɪᴄɪᴇɴᴛ Bᴀʟᴀɴᴄᴇ' });
+    if (!receiver) return res.status(404).json({ error: 'Receiver not found' });
+    if (sender.mobile === mobile) return res.status(400).json({ error: 'Cannot transfer to yourself' });
+    if (sender.balance < amount) return res.status(400).json({ error: 'Insufficient balance' });
 
     sender.balance -= amount;
     receiver.balance += amount;
@@ -30,15 +30,10 @@ router.post('/', auth, async (req, res) => {
       type: 'transfer',
       status: 'success',
       txnId: uuidv4().replace(/-/g,'').slice(0,12).toUpperCase(),
-      note: note || 'Tʀᴀɴsғᴇʀ'
+      note: note || 'Transfer'
     });
 
-    res.json({ 
-      success: true, 
-      message: `₹${amount} Sᴇɴᴛ Tᴏ ${receiver.fullName}`, 
-      txnId: txn.txnId, 
-      newBalance: sender.balance 
-    });
+    res.json({ success: true, message: `₹${amount} sent to ${receiver.name}`, txnId: txn.txnId, newBalance: sender.balance });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
